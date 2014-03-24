@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<title>
+  Puzzler
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <style type="text/css">
+    canvas { border: 1px solid black; }
+  </style>
+</title>
+<body>
+  <canvas width="500" height="500" id="puzzle">
+    <p>
+      Please try a newer browser!  Thanks.
+    </p>
+  </canvas>
+  <script type="text/javascript">
+    (function () {
+      "use strict";
+
+      var buildPuzzle, shuffle, swap, pictureUrl;
+
+      swap = function(aa, bb) {
+        var row, col;
+        row = aa.row;
+        col = aa.col;
+        aa.row = bb.row;
+        aa.col = bb.col;
+        bb.row = row;
+        bb.col = col; 
+      };
+
+      shuffle = function (tiles) {
+        var ii, random1, random2;
+    
+        //for (ii = 0; ii < tiles.length * 4; ii += 1) {
+        for (ii = 0; ii < 3; ii += 1) {
+          random1 = Math.floor(Math.random() * tiles.length);
+          random2 = Math.floor(Math.random() * tiles.length);
+          swap(tiles[random1], tiles[random2]);
+        }
+      };
+
+      buildPuzzle = function (rowCount, colCount, rowHeight, colWidth, border, imageUrl) {
+        var canvas, ctx, img, tile, tiles, emptyTile, move, puzzleSolved;
+      
+        canvas = document.getElementById('puzzle');
+        tile = {
+          draw: function () {
+            if (this.empty) {
+              ctx.fillStyle = "rgb(255, 255, 255)";
+              ctx.fillRect(this.col * (colWidth + border), 
+                     this.row * (rowHeight + border),
+                     colWidth, rowHeight);
+            } else {
+              ctx.drawImage(img, this.imageCol * colWidth, 
+                          this.imageRow * rowHeight,
+                          colWidth, rowHeight, 
+                          this.col * (colWidth + border),
+                          this.row * (rowHeight + border), 
+                          colWidth, rowHeight);
+            }
+          },
+          contains: function (xx, yy) {
+            if (this.empty) {
+              return false;
+            }
+            return this.col * (colWidth + border) < xx && 
+                  (this.col + 1) * (colWidth + border) > xx &&
+                  this.row * (rowHeight + border) < yy && 
+                  (this.row + 1) * (rowHeight + border) > yy;
+          },
+          emptyNeighbour: function () {
+            return Math.abs(this.col - emptyTile.col) + Math.abs(this.row - emptyTile.row) === 1;
+          },
+          solved: function () {
+            return this.col == this.imageCol && this.row == this.imageRow;
+          }
+        };
+        if (canvas.getContext) {
+          ctx = canvas.getContext('2d');
+
+          img = new Image();
+          img.src = imageUrl;
+          tiles = []; 
+          img.onload = function () {
+            var ii, jj;
+            for (ii = 0; ii < rowCount; ii += 1) {
+              for (jj = 0; jj < colCount; jj += 1) {
+                tile = Object.create(tile);
+                tile.row = ii;
+                tile.col = jj;
+                tile.imageRow = ii;
+                tile.imageCol = jj;
+                tile.empty = (ii === 0 && jj === colCount - 1);
+                tiles.push(tile);
+                if (tile.empty) {
+                  emptyTile = tile;
+                }
+              }
+            }
+            shuffle(tiles);
+            tiles.forEach(function (tile) {
+              tile.draw();
+            });
+          };
+        }
+        move = function (tile, emptyTile) {
+          swap(tile, emptyTile);
+          tile.draw();
+          emptyTile.draw();
+        };
+        puzzleSolved = function () {
+          var solved = true;
+          tiles.forEach(function (tile) {
+            if (!tile.solved()) { 
+              solved = false;
+            }
+          });
+          return solved;
+        };
+        canvas.onclick = function(ev) {
+          if (puzzleSolved()) {
+            return;
+          }
+          tiles.forEach(function (tile) {
+            if (tile.contains(ev.x, ev.y) && tile.emptyNeighbour()) {
+              move(tile, emptyTile);
+              if (puzzleSolved()) {
+              }
+            }
+          });
+        };
+      };
+      //pictureUrl = "http://www.teenvogue.com/images/fashion/spring-trends/2013-05/karlie-kloss-frame-denim-intro.jpg"
+      pictureUrl = "http://ia.media-imdb.com/images/M/MV5BNDM1NzkzMjQ4NF5BMl5BanBnXkFtZTcwMDE3Nzk3Mg@@._V1_SX640_SY720_.jpg";
+
+      window.onload = function() { 
+        buildPuzzle(3, 3, 130, 130, 2, pictureUrl); 
+      };
+    }());
+  </script>
+</body>
+</html>
