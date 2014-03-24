@@ -69,8 +69,11 @@
                   this.row * (rowHeight + border) < yy && 
                   (this.row + 1) * (rowHeight + border) > yy;
           },
+          neighbour: function (tile) {
+            return Math.abs(this.col - tile.col) + Math.abs(this.row - tile.row) === 1;
+          },
           emptyNeighbour: function () {
-            return Math.abs(this.col - emptyTile.col) + Math.abs(this.row - emptyTile.row) === 1;
+            return this.neighbour(emptyTile);
           },
           solved: function () {
             return this.col == this.imageCol && this.row == this.imageRow;
