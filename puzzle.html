@@ -95,16 +95,14 @@
           img = new Image();
           img.src = imageUrl;
           
-          console.log(img.width);
-          console.log(img.height);
-          if (img.height > img.width) {
-            imageWidth = imageHeight = img.width / rowCount;
-          } else {
-            imageWidth = imageHeight = img.height / rowCount;
-          }
           tiles = []; 
           img.onload = function () {
             var ii, jj;
+            if (img.height > img.width) {
+              imageWidth = imageHeight = img.width / rowCount;
+            } else {
+              imageWidth = imageHeight = img.height / rowCount;
+            }
             for (ii = 0; ii < rowCount; ii += 1) {
               for (jj = 0; jj < colCount; jj += 1) {
                 tile = Object.create(tile);
@@ -156,8 +154,9 @@
           });
         };
       };
-      pictureUrl = "http://www.teenvogue.com/images/fashion/spring-trends/2013-05/karlie-kloss-frame-denim-intro.jpg"
-     // pictureUrl = "http://ia.media-imdb.com/images/M/MV5BNDM1NzkzMjQ4NF5BMl5BanBnXkFtZTcwMDE3Nzk3Mg@@._V1_SX640_SY720_.jpg";
+      //pictureUrl = "http://www.teenvogue.com/images/fashion/spring-trends/2013-05/karlie-kloss-frame-denim-intro.jpg"
+      pictureUrl = "http://ia.media-imdb.com/images/M/MV5BNDM1NzkzMjQ4NF5BMl5BanBnXkFtZTcwMDE3Nzk3Mg@@._V1_SX640_SY720_.jpg";
+      //pictureUrl = "http://thechive.files.wordpress.com/2011/03/facebook-bikini-13.jpg";
 
       window.onload = function() { 
         buildPuzzle(3, 3, 130, 130, 2, pictureUrl); 
