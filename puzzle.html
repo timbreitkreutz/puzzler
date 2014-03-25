@@ -19,7 +19,7 @@
     (function () {
       "use strict";
 
-      var buildPuzzle, shuffle, swap, pictureUrl, emptyTile, tiles, fadeIn, slide;
+      var buildPuzzle, shuffle, swap, pictureUrl, emptyTile, tiles, fadeIn, slide, ctx, img, imageSize, size, border;
 
       swap = function(aa, bb) {
         var row, col;
@@ -31,12 +31,10 @@
         bb.col = col; 
       };
 
-
       fadeIn = function (el) {
-
       };
 
-      slide = function (ctx, img, tile, emptyTile, imageSize, size, border) { 
+      slide = function (tile) { 
         ctx.drawImage(img, tile.imageCol * imageSize, tile.imageRow * imageSize, imageSize, imageSize, 
                 (tile.col) * (size + border),
                 (tile.row) * (size + border), 
@@ -60,9 +58,11 @@
         }
       };
 
-      buildPuzzle = function (count, size, border, imageUrl) {
-        var canvas, ctx, img, tile, move, puzzleSolved, imageSize;
+      buildPuzzle = function (count, displaySize, displayBorder, imageUrl) {
+        var canvas, tile, move, puzzleSolved;
       
+        size = displaySize;
+        border = displayBorder;
         canvas = document.getElementById('puzzle');
         tile = {
           draw: function (emptyTile) {
@@ -145,13 +145,13 @@
               shuffle();
             }
             tiles.forEach(function (tile) {
-              tile.draw(0);
+              tile.draw();
             });
           };
         }
         move = function (tile, emptyTile) {
           swap(tile, emptyTile);
-          tile.draw(emptyTile);
+          slide(tile);
         };
         puzzleSolved = function () {
           var solved = true;
@@ -171,7 +171,7 @@
               move(tile, emptyTile);
               if (puzzleSolved()) {
                 emptyTile.empty = false;
-                emptyTile.draw(emptyTile.neighbours[0]);
+                emptyTile.draw();
               }
             }
           });
