@@ -1,14 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
-<title>
-  Puzzler
+<html>
+<head>
+  <title>
+    Puzzler
+  </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <style type="text/css">
     canvas { border: 1px solid black; }
   </style>
-</title>
+</head>
 <body>
-  <canvas width="500" height="500" id="puzzle">
+  <canvas width="604" height="604" id="puzzle">
     <p>
       Please try a newer browser!  Thanks.
     </p>
@@ -17,7 +19,7 @@
     (function () {
       "use strict";
 
-      var buildPuzzle, shuffle, swap, pictureUrl, emptyTile, tiles;
+      var buildPuzzle, shuffle, swap, pictureUrl, emptyTile, tiles, fadeIn, slide;
 
       swap = function(aa, bb) {
         var row, col;
@@ -27,6 +29,24 @@
         aa.col = bb.col;
         bb.row = row;
         bb.col = col; 
+      };
+
+
+      fadeIn = function (el) {
+
+      };
+
+      slide = function (ctx, img, tile, emptyTile, imageSize, size, border) { 
+        ctx.drawImage(img, tile.imageCol * imageSize, tile.imageRow * imageSize, imageSize, imageSize, 
+                (tile.col) * (size + border),
+                (tile.row) * (size + border), 
+                size, size);
+        ctx.fillStyle = "rgb(255, 255, 255)";
+        
+        ctx.fillRect(
+          (emptyTile.col) * (size + border),
+          (emptyTile.row) * (size + border),
+           size, size);
       };
 
       shuffle = function () {
@@ -45,19 +65,23 @@
       
         canvas = document.getElementById('puzzle');
         tile = {
-          draw: function () {
+          draw: function (emptyTile) {
             if (this.empty) {
               ctx.fillStyle = "rgb(255, 255, 255)";
               ctx.fillRect(this.col * (size + border), 
                      this.row * (size + border),
                      size, size);
             } else {
-              ctx.drawImage(img, this.imageCol * imageSize, 
-                          this.imageRow * imageSize,
-                          imageSize, imageSize, 
+              if (emptyTile) {
+                console.log(this.col * (size + border), this.row * (size + border));
+                console.log(emptyTile.col * (size + border), emptyTile.row * (size + border));
+                slide(ctx, img, this, emptyTile, imageSize, size, border);
+              } else {
+                ctx.drawImage(img, this.imageCol * imageSize, this.imageRow * imageSize, imageSize, imageSize, 
                           this.col * (size + border),
                           this.row * (size + border), 
                           size, size);
+              }
             }
           },
           contains: function (xx, yy) {
@@ -121,14 +145,13 @@
               shuffle();
             }
             tiles.forEach(function (tile) {
-              tile.draw();
+              tile.draw(0);
             });
           };
         }
         move = function (tile, emptyTile) {
           swap(tile, emptyTile);
-          tile.draw();
-          emptyTile.draw();
+          tile.draw(emptyTile);
         };
         puzzleSolved = function () {
           var solved = true;
@@ -148,19 +171,19 @@
               move(tile, emptyTile);
               if (puzzleSolved()) {
                 emptyTile.empty = false;
-                emptyTile.draw();
+                emptyTile.draw(emptyTile.neighbours[0]);
               }
             }
           });
         };
       };
       //pictureUrl = "http://www.teenvogue.com/images/fashion/spring-trends/2013-05/karlie-kloss-frame-denim-intro.jpg"
-      pictureUrl = "http://ia.media-imdb.com/images/M/MV5BNDM1NzkzMjQ4NF5BMl5BanBnXkFtZTcwMDE3Nzk3Mg@@._V1_SX640_SY720_.jpg";
+      //pictureUrl = "http://ia.media-imdb.com/images/M/MV5BNDM1NzkzMjQ4NF5BMl5BanBnXkFtZTcwMDE3Nzk3Mg@@._V1_SX640_SY720_.jpg";
       pictureUrl = "http://www.tumblr18.com/t18/2013/10/Puppies-in-a-basket.jpeg";
       //pictureUrl = "http://thechive.files.wordpress.com/2011/03/facebook-bikini-13.jpg";
 
       window.onload = function() { 
-        buildPuzzle(3, 150, 2, pictureUrl); 
+        buildPuzzle(3, 200, 2, pictureUrl); 
       };
     }());
   </script>
