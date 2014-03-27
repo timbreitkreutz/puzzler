@@ -28,6 +28,10 @@
 
       swap = function(aa, bb) {
         var row, col;
+        if (Math.abs(aa.col - bb.col) + Math.abs(aa.row - bb.row) !== 1) {
+          console.log("illegal swap");
+          return;
+        }
         row = aa.row;
         col = aa.col;
         aa.row = bb.row;
