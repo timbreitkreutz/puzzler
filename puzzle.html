@@ -24,8 +24,7 @@
       //  Available under creative commons share-alike licence by
       //  Software Brewmasters Incorporated
 
-      var buildPuzzle, shuffle, pictureUrl, emptyTile, tiles;
-
+      var puzzle, shuffle, emptyTile, tiles, pictureUrl;
 
       shuffle = function () {
         var ii, neighbours;
@@ -38,7 +37,7 @@
         }
       };
 
-      buildPuzzle = function (count, size, border, imageUrl) {
+      puzzle = function (count, size, border, imageUrl) {
         var canvas, tile, move, puzzleSolved;
       
         canvas = document.getElementById('puzzle');
@@ -178,7 +177,7 @@
       pictureUrl = "http://www.tumblr18.com/t18/2013/10/Puppies-in-a-basket.jpeg";
 
       window.onload = function() { 
-        buildPuzzle(3, 200, 2, pictureUrl); 
+        puzzle(3, 200, 2, pictureUrl); 
       };
     }());
   </script>
