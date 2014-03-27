@@ -158,7 +158,13 @@
             return;
           }
           tiles.forEach(function (tile) {
-            if (tile.contains(ev.x, ev.y) && tile.emptyNeighbour()) {
+            var x, y;
+
+            // chrome/safari vs firefox
+            x = ev.x || ev.clientX;
+            y = ev.y || ev.clientY;
+          
+            if (tile.contains(x, y) && tile.emptyNeighbour()) {
               move(tile, emptyTile);
               if (puzzleSolved()) {
                 emptyTile.empty = false;
