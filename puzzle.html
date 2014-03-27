@@ -15,6 +15,9 @@
       Please try a newer browser!  Thanks.
     </p>
   </canvas>
+  <p>
+    <input id="inputUrl" type="text" size="80" value="Please enter a URL to change the picture"></input>
+  </p>
   <script type="text/javascript">
     (function () {
       "use strict";
@@ -90,7 +93,7 @@
           swap: function(that) {
             var row, col;
             if (!this.neighbour(that)) {
-              console.log("illegal swap");
+              //console.log("illegal swap");
               return;
             }
             row = this.row;
@@ -177,7 +180,35 @@
       pictureUrl = "http://www.tumblr18.com/t18/2013/10/Puppies-in-a-basket.jpeg";
 
       window.onload = function() { 
-        puzzle(3, 200, 2, pictureUrl); 
+        var inputUrl, rows, tileSize, border, firstFocus, reload;
+        rows = 3;
+        tileSize = 200;
+        border = 2;
+        firstFocus = true;
+
+        puzzle(rows, tileSize, border, pictureUrl); 
+        inputUrl = document.getElementById('inputUrl');
+        inputUrl.onfocus = function () {
+          if (firstFocus) {
+            this.value = "";
+            firstFocus = false;
+          }
+        };
+        reload = function (ev) {
+          if (ev.type === "keyup" && ev.which !== 13) {
+            return;
+          }
+          var img = new Image();
+          img.src = this.value;
+          
+          img.onload = function (er) {
+            if (img.height > 0) {
+              puzzle(rows, tileSize, border, inputUrl.value); 
+            }
+          }
+        };
+        inputUrl.onblur = reload;
+        inputUrl.onkeyup = reload;
       };
     }());
   </script>
