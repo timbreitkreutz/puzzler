@@ -24,7 +24,7 @@
       //  Available under creative commons share-alike licence by
       //  Software Brewmasters Incorporated
 
-      var buildPuzzle, shuffle, swap, pictureUrl, emptyTile, tiles, fadeIn, slide, ctx, img, imageSize, size, border;
+      var buildPuzzle, shuffle, swap, pictureUrl, emptyTile, tiles, ctx, img, imageSize, size, border;
 
       swap = function(aa, bb) {
         var row, col;
@@ -34,22 +34,6 @@
         aa.col = bb.col;
         bb.row = row;
         bb.col = col; 
-      };
-
-      fadeIn = function (el) {
-      };
-
-      slide = function (tile) { 
-        ctx.drawImage(img, tile.imageCol * imageSize, tile.imageRow * imageSize, imageSize, imageSize, 
-                (tile.col) * (size + border),
-                (tile.row) * (size + border), 
-                size, size);
-        ctx.fillStyle = "rgb(255, 255, 255)";
-        
-        ctx.fillRect(
-          (emptyTile.col) * (size + border),
-          (emptyTile.row) * (size + border),
-           size, size);
       };
 
       shuffle = function () {
@@ -77,16 +61,10 @@
                      this.row * (size + border),
                      size, size);
             } else {
-              if (emptyTile) {
-                console.log(this.col * (size + border), this.row * (size + border));
-                console.log(emptyTile.col * (size + border), emptyTile.row * (size + border));
-                slide(ctx, img, this, emptyTile, imageSize, size, border);
-              } else {
-                ctx.drawImage(img, this.imageCol * imageSize, this.imageRow * imageSize, imageSize, imageSize, 
-                          this.col * (size + border),
-                          this.row * (size + border), 
-                          size, size);
-              }
+              ctx.drawImage(img, this.imageCol * imageSize, this.imageRow * imageSize, imageSize, imageSize, 
+                        this.col * (size + border),
+                        this.row * (size + border), 
+                        size, size);
             }
           },
           contains: function (xx, yy) {
@@ -156,7 +134,8 @@
         }
         move = function (tile, emptyTile) {
           swap(tile, emptyTile);
-          slide(tile);
+          emptyTile.draw();
+          tile.draw();
         };
         puzzleSolved = function () {
           var solved = true;
