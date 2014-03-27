@@ -44,7 +44,7 @@
         tile = {
           size: size,
           border: border,
-          draw: function (emptyTile) {
+          draw: function () {
             if (this.empty) {
               this.ctx.fillRect(this.col * (this.size + this.border), 
                      this.row * (this.size + this.border),
@@ -89,7 +89,7 @@
           },
           swap: function(that) {
             var row, col;
-            if (Math.abs(this.col - that.col) + Math.abs(this.row - that.row) !== 1) {
+            if (!this.neighbour(that)) {
               console.log("illegal swap");
               return;
             }
