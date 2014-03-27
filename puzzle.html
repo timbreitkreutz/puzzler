@@ -24,21 +24,8 @@
       //  Available under creative commons share-alike licence by
       //  Software Brewmasters Incorporated
 
-      var buildPuzzle, shuffle, swap, pictureUrl, emptyTile, tiles;
+      var buildPuzzle, shuffle, pictureUrl, emptyTile, tiles;
 
-      swap = function(aa, bb) {
-        var row, col;
-        if (Math.abs(aa.col - bb.col) + Math.abs(aa.row - bb.row) !== 1) {
-          console.log("illegal swap");
-          return;
-        }
-        row = aa.row;
-        col = aa.col;
-        aa.row = bb.row;
-        aa.col = bb.col;
-        bb.row = row;
-        bb.col = col; 
-      };
 
       shuffle = function () {
         var ii, neighbours;
@@ -47,7 +34,7 @@
         for (ii = 0; ii < 3; ii += 1) {
           neighbours = emptyTile.neighbours();
 
-          swap(emptyTile, neighbours[Math.floor(Math.random() * neighbours.length)]);
+          emptyTile.swap(neighbours[Math.floor(Math.random() * neighbours.length)]);
         }
       };
 
@@ -100,6 +87,19 @@
           },
           solved: function () {
             return this.col === this.imageCol && this.row === this.imageRow;
+          },
+          swap: function(that) {
+            var row, col;
+            if (Math.abs(this.col - that.col) + Math.abs(this.row - that.row) !== 1) {
+              console.log("illegal swap");
+              return;
+            }
+            row = this.row;
+            col = this.col;
+            this.row = that.row;
+            this.col = that.col;
+            that.row = row;
+            that.col = col; 
           }
         };
         if (canvas.getContext) {
@@ -140,7 +140,7 @@
           };
         }
         move = function (tile, emptyTile) {
-          swap(tile, emptyTile);
+          tile.swap(emptyTile);
           emptyTile.draw();
           tile.draw();
         };
