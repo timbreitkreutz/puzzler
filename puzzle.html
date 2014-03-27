@@ -24,7 +24,7 @@
       //  Available under creative commons share-alike licence by
       //  Software Brewmasters Incorporated
 
-      var buildPuzzle, shuffle, swap, pictureUrl, emptyTile, tiles, ctx, img, imageSize, size, border;
+      var buildPuzzle, shuffle, swap, pictureUrl, emptyTile, tiles;
 
       swap = function(aa, bb) {
         var row, col;
@@ -47,34 +47,37 @@
         }
       };
 
-      buildPuzzle = function (count, displaySize, displayBorder, imageUrl) {
+      buildPuzzle = function (count, size, border, imageUrl) {
         var canvas, tile, move, puzzleSolved;
       
-        size = displaySize;
-        border = displayBorder;
         canvas = document.getElementById('puzzle');
         tile = {
+          size: size,
+          border: border,
           draw: function (emptyTile) {
             if (this.empty) {
-              ctx.fillStyle = "rgb(255, 255, 255)";
-              ctx.fillRect(this.col * (size + border), 
-                     this.row * (size + border),
-                     size, size);
+              this.ctx.fillStyle = "rgb(255, 255, 255)";
+              this.ctx.fillRect(this.col * (this.size + this.border), 
+                     this.row * (this.size + this.border),
+                     this.size, this.size);
             } else {
-              ctx.drawImage(img, this.imageCol * imageSize, this.imageRow * imageSize, imageSize, imageSize, 
-                        this.col * (size + border),
-                        this.row * (size + border), 
-                        size, size);
+              this.ctx.drawImage(this.img,
+                                 this.imageCol * this.imageSize, 
+                                 this.imageRow * this.imageSize, 
+                                 this.imageSize, this.imageSize, 
+                                 this.col * (this.size + this.border),
+                                 this.row * (this.size + this.border), 
+                                 this.size, this.size);
             }
           },
           contains: function (xx, yy) {
             if (this.empty) {
               return false;
             }
-            return this.col * (size + border) < xx && 
-                  (this.col + 1) * (size + border) > xx &&
-                  this.row * (size + border) < yy && 
-                  (this.row + 1) * (size + border) > yy;
+            return this.col * (this.size + this.border) < xx && 
+                  (this.col + 1) * (this.size + this.border) > xx &&
+                  this.row * (this.size + this.border) < yy && 
+                  (this.row + 1) * (this.size + this.border) > yy;
           },
           neighbour: function (tile) {
             return Math.abs(this.col - tile.col) + Math.abs(this.row - tile.row) === 1;
@@ -97,18 +100,18 @@
           }
         };
         if (canvas.getContext) {
-          ctx = canvas.getContext('2d');
+          tile.ctx = canvas.getContext('2d');
 
-          img = new Image();
-          img.src = imageUrl;
+          tile.img = new Image();
+          tile.img.src = imageUrl;
           
           tiles = []; 
-          img.onload = function () {
+          tile.img.onload = function () {
             var ii, jj;
-            if (img.height > img.width) {
-              imageSize = img.width / count;
+            if (tile.img.height > tile.img.width) {
+              tile.imageSize = tile.img.width / count;
             } else {
-              imageSize = img.height / count;
+              tile.imageSize = tile.img.height / count;
             }
             for (ii = 0; ii < count; ii += 1) {
               for (jj = 0; jj < count; jj += 1) {
