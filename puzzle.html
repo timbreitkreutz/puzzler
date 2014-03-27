@@ -16,7 +16,7 @@
     </p>
   </canvas>
   <p>
-    <input id="inputUrl" type="text" size="80" value="Please enter a URL to change the picture"></input>
+    <input id="inputUrl" type="text" size="80" value="Please enter a URL to change the picture">
   </p>
   <script type="text/javascript">
     (function () {
@@ -201,11 +201,11 @@
           var img = new Image();
           img.src = this.value;
           
-          img.onload = function (er) {
+          img.onload = function () {
             if (img.height > 0) {
               puzzle(rows, tileSize, border, inputUrl.value); 
             }
-          }
+          };
         };
         inputUrl.onblur = reload;
         inputUrl.onkeyup = reload;
