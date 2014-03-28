@@ -5,11 +5,19 @@
         Puzzler
     </title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro' rel='stylesheet' type='text/css'>
     <style type="text/css">
         canvas { border: 1px solid black; }
+        body { font-family: 'Source Sans Pro', sans-serif; }
     </style>
 </head>
 <body>
+    <p>
+        This page demonstrates using the Canvas from raw javascript without using jQuery or other 
+        libraries.
+        To play the puzzle, click on a square next to the blank square.  When you solve the puzzle
+        the top right corner will appear.
+    </p>
     <canvas width="604" height="604" id="puzzle">
         <p>
             Please try a newer browser! Thanks.
@@ -32,7 +40,7 @@
             shuffle = function () {
                 var ii, neighbours;
 
-                for (ii = 0; ii < tiles.length * 2; ii += 1) {
+                for (ii = 0; ii < 2; ii += 1) { //tiles.length * 2; ii += 1) {
                     neighbours = emptyTile.neighbours();
 
                     emptyTile.swap(neighbours[Math.floor(Math.random() * neighbours.length)]);
@@ -65,10 +73,10 @@
                         if (this.empty) {
                             return false;
                         }
-                        return this.col * (this.size + this.border) < xx &&
-                                    (this.col + 1) * (this.size + this.border) > xx &&
-                                    this.row * (this.size + this.border) < yy &&
-                                    (this.row + 1) * (this.size + this.border) > yy;
+                        return this.col      * (this.size + this.border) < xx &&
+                              (this.col + 1) * (this.size + this.border) > xx &&
+                               this.row      * (this.size + this.border) < yy &&
+                              (this.row + 1) * (this.size + this.border) > yy;
                     },
                     neighbour: function (tile) {
                         return Math.abs(this.col - tile.col) + Math.abs(this.row - tile.row) === 1;
