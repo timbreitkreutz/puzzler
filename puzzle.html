@@ -40,7 +40,7 @@
             shuffle = function () {
                 var ii, neighbours;
 
-                for (ii = 0; ii < 2; ii += 1) { //tiles.length * 2; ii += 1) {
+                for (ii = 0; ii < tiles.length * 5; ii += 1) {
                     neighbours = emptyTile.neighbours();
 
                     emptyTile.swap(neighbours[Math.floor(Math.random() * neighbours.length)]);
@@ -154,13 +154,15 @@
                     tile.draw();
                 };
                 puzzleSolved = function () {
-                    var solved = true;
-                    tiles.forEach(function (tile) {
-                        if (!tile.solved()) {
-                            solved = false;
+                    var ii;
+
+                    for(ii = 0; ii < tiles.length; ii += 1) {
+                        if (tiles[ii].row != tiles[ii].imageRow ||
+                            tiles[ii].col != tiles[ii].imageCol) {
+                            return false;
                         }
-                    });
-                    return solved;
+                    }
+                    return true;
                 };
                 canvas.onclick = function (ev) {
                     if (puzzleSolved()) {
