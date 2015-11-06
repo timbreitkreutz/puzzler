@@ -164,15 +164,16 @@
                     var img = new Image();
                     img.src = imageUrl;
 
-                    if (img.height > img.width) {
-                        imageSize = img.width / count;
-                    } else {
-                        imageSize = img.height / count;
-                    }
 
                     tiles = [];
                     img.onload = function () {
                         var ii, jj;
+
+                        if (img.height > img.width) {
+                            imageSize = img.width / count;
+                        } else {
+                            imageSize = img.height / count;
+                        }
 
                         for (ii = 0; ii < count; ii += 1) {
                             for (jj = 0; jj < count; jj += 1) {
@@ -215,8 +216,8 @@
                         var x, y;
 
                         // chrome/safari vs firefox
-                        x = ev.x || ev.clientX;
-                        y = ev.y || ev.clientY;
+                        x = (ev.x || ev.clientX) - document.getElementById('puzzle').offsetLeft;
+                        y = (ev.y || ev.clientY) - document.getElementById('puzzle').offsetTop;
 
                         if (tile.contains(x, y) && tile.emptyNeighbour()) {
                             move(tile, emptyTile);
