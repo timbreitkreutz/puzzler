@@ -14,7 +14,7 @@
 <body>
     <p>
         This page demonstrates using the Canvas from raw javascript without using jQuery or other 
-        libraries.
+        libraries, and it makes use of Crockford's classless OO.
         To play the puzzle, click on a square next to the blank square.  When you solve the puzzle
         the top right corner will appear.
     </p>
@@ -31,65 +31,69 @@
 (function () {
     "use strict";
 
-    //  Tim Breitkreutz/2014
+    //  Tim Breitkreutz/2015
     //
     //  Available under creative commons share-alike licence by
     //  Software Brewmasters Incorporated
 
-    var puzzle, shuffle, emptyTile, tiles, pictureUrl;
+    var puzzle, shuffle, emptyTile, tiles, pictureUrl, tileFactory;
 
     shuffle = function () {
         var ii, neighbours;
 
-        // for (ii = 0; ii < tiles.length * 5; ii += 1) {
+        for (ii = 0; ii < tiles.length * 5; ii += 1) {
             neighbours = emptyTile.neighbours();
 
             emptyTile.swap(neighbours[Math.floor(Math.random() * neighbours.length)]);
-        // }
+        }
     };
 
-    var tileFactory = function(tile, size, border) {
-        var tileSize = size + border;
+    tileFactory = function (size, border, img, ctx, imageSize, row, col, count) {
+        var tileSize = size + border,
+            origRow = row,
+            origCol = col,
+            theRow = row,
+            theCol = col,
+            isEmpty = (row === 0 && col === count - 1);
 
         var draw = function () {
-            if (this.empty) {
-                this.ctx.fillRect(this.col * (tileSize),
-                                  this.row * (tileSize),
-                                  size, size);
+            if (isEmpty) {
+                ctx.fillRect(theCol * (tileSize),
+                             theRow * (tileSize),
+                             size, size);
             } else {
-                this.ctx.drawImage(this.img,
-                                   this.imageCol * this.imageSize,
-                                   this.imageRow * this.imageSize,
-                                   this.imageSize, this.imageSize,
-                                   this.col * (tileSize),
-                                   this.row * (tileSize),
-                                   size, size);
+                ctx.drawImage(img,
+                              origCol * imageSize,
+                              origRow * imageSize,
+                              imageSize, imageSize,
+                              theCol * (tileSize),
+                              theRow * (tileSize),
+                              size, size);
             }
         };
 
         var contains = function (xx, yy) {
-            if (this.empty) {
+            if (isEmpty) {
                 return false;
             }
-            return this.col      * (tileSize) < xx &&
-                  (this.col + 1) * (tileSize) > xx &&
-                   this.row      * (tileSize) < yy &&
-                  (this.row + 1) * (tileSize) > yy;
+            return theCol      * (tileSize) < xx &&
+                  (theCol + 1) * (tileSize) > xx &&
+                   theRow      * (tileSize) < yy &&
+                  (theRow + 1) * (tileSize) > yy;
         };
 
         var neighbour = function (tile) {
-            return Math.abs(this.col - tile.col) + Math.abs(this.row - tile.row) === 1;
+            return Math.abs(theCol - tile.getCol()) + Math.abs(theRow - tile.getRow()) === 1;
         };
 
         var emptyNeighbour = function () {
-            return this.neighbour(emptyTile);
+            return neighbour(emptyTile);
         };
 
         var neighbours = function () {
-            var that, result = [];
-            that = this;
+            var result = [];
             tiles.forEach(function (tile) {
-                if (that.neighbour(tile)) {
+                if (neighbour(tile)) {
                     result.push(tile);
                 }
             });
@@ -97,85 +101,85 @@
         };
 
         var solved = function () {
-            return this.col === this.imageCol && this.row === this.imageRow;
+            return theCol === origCol && theRow === origRow;
         };
 
-        var swap = function (that) {
-            var row, col;
-            if (!this.neighbour(that)) {
-                //console.log("illegal swap");
-                return;
+        var swap = function (other) {
+            var tmpR, tmpC;
+            if (neighbour(other)) {
+                tmpR = theRow;
+                tmpC = theCol;
+                theRow = other.getRow();
+                theCol = other.getCol();
+                other.setPosition(tmpR, tmpC);
             }
-            row = this.row;
-            col = this.col;
-            this.row = that.row;
-            this.col = that.col;
-            that.row = row;
-            that.col = col;
         };
 
-        if (tile) {
-            return Object.create(tile);
-        } else {
-            var newTile =  {
-                size: size,
-                border: border,
-                draw: draw,
-                contains: contains,
-                neighbour: neighbour,
-                emptyNeighbour: emptyNeighbour,
-                neighbours: neighbours,
-                solved: solved,
-                swap: swap
-            };
-            // State
-            (function() {
-                var theRow = 0, 
-                    theCol = 0;
-                newTile.position = function() {
-                    return {row: theRow, col: theCol};
-                };
-                newTile.setPosition = function(row, col) {
-                    theRow = row;
-                    theCol = col;
-                };
-            }());
-            return newTile;
-        }
-    }
+        var setPosition = function (row, col) {
+            theRow = row;
+            theCol = col;
+        };
+
+        var show = function () {
+            isEmpty = false;
+            draw();
+        };
+
+        var empty = function () {
+            return isEmpty;
+        };
+
+        var getCol = function () {
+            return theCol;
+        };
+
+        var getRow = function () {
+            return theRow;
+        };
+
+        return Object.freeze({
+            draw: draw,
+            contains: contains,
+            emptyNeighbour: emptyNeighbour,
+            neighbours: neighbours,
+            solved: solved,
+            swap: swap,
+            empty: empty,
+            getCol: getCol,
+            getRow: getRow,
+            show: show,
+            setPosition: setPosition
+        });
+    };
 
     puzzle = function (count, size, border, imageUrl) {
-        var canvas, tile, move, puzzleSolved;
+        var canvas, tile, move, puzzleSolved, imageSize;
 
         canvas = document.getElementById('puzzle');
 
-        tile = tileFactory(null, size, border);
-
         if (canvas.getContext) {
-            tile.ctx = canvas.getContext('2d');
-            tile.ctx.fillStyle = "rgb(255, 255, 255)";
+            var ctx = canvas.getContext('2d');
+            ctx.fillStyle = "rgb(255, 255, 255)";
 
-            tile.img = new Image();
-            tile.img.src = imageUrl;
+            var img = new Image();
+            img.src = imageUrl;
+
+            if (img.height > img.width) {
+                imageSize = img.width / count;
+            } else {
+                imageSize = img.height / count;
+            }
 
             tiles = [];
-            tile.img.onload = function () {
+            img.onload = function () {
                 var ii, jj;
-                if (tile.img.height > tile.img.width) {
-                    tile.imageSize = tile.img.width / count;
-                } else {
-                    tile.imageSize = tile.img.height / count;
-                }
+
                 for (ii = 0; ii < count; ii += 1) {
                     for (jj = 0; jj < count; jj += 1) {
-                        tile = tileFactory(tile);
-                        tile.row = ii;
-                        tile.col = jj;
-                        tile.imageRow = ii;
-                        tile.imageCol = jj;
-                        tile.empty = (ii === 0 && jj === count - 1);
+                        tile = tileFactory(size, border, img, ctx, imageSize, ii, jj, count);
+
                         tiles.push(tile);
-                        if (tile.empty) {
+                        if (tile.empty()) {
                             emptyTile = tile;
                         }
                     }
@@ -196,9 +200,8 @@
         puzzleSolved = function () {
             var ii;
 
-            for(ii = 0; ii < tiles.length; ii += 1) {
-                if (tiles[ii].row != tiles[ii].imageRow ||
-                    tiles[ii].col != tiles[ii].imageCol) {
+            for (ii = 0; ii < tiles.length; ii += 1) {
+                if (!tiles[ii].solved()) {
                     return false;
                 }
             }
@@ -218,8 +221,7 @@
                 if (tile.contains(x, y) && tile.emptyNeighbour()) {
                     move(tile, emptyTile);
                     if (puzzleSolved()) {
-                        emptyTile.empty = false;
-                        emptyTile.draw();
+                        emptyTile.show();
                     }
                 }
             });
@@ -239,7 +241,7 @@
         inputUrl = document.getElementById('inputUrl');
         inputUrl.onfocus = function () {
             if (firstFocus) {
-                this.value = "";
+                inputUrl.value = "";
                 firstFocus = false;
             }
         };
@@ -248,7 +250,7 @@
                 return;
             }
             var img = new Image();
-            img.src = this.value;
+            img.src = inputUrl.value;
 
             img.onload = function () {
                 if (img.height > 0) {
