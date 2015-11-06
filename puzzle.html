@@ -14,7 +14,7 @@
 <body>
     <p>
         This page demonstrates using the Canvas from raw javascript without using jQuery or other 
-        libraries, and it makes use of Crockford's classless OO.
+        libraries, and it makes use of Crockford's classless OO. (Note the lack of any references to <em>this</em>)
         To play the puzzle, click on a square next to the blank square.  When you solve the puzzle
         the top right corner will appear.
     </p>
@@ -28,240 +28,240 @@
     </p>
     <script type="text/javascript">
 
-(function () {
-    "use strict";
+        (function () {
+            "use strict";
 
-    //  Tim Breitkreutz/2015
-    //
-    //  Available under creative commons share-alike licence by
-    //  Software Brewmasters Incorporated
+            //  Tim Breitkreutz/2015
+            //
+            //  Available under creative commons share-alike licence by
+            //  Software Brewmasters Incorporated
 
-    var puzzle, shuffle, emptyTile, tiles, pictureUrl, tileFactory;
+            var puzzle, shuffle, emptyTile, tiles, pictureUrl, tileFactory;
 
-    shuffle = function () {
-        var ii, neighbours;
+            shuffle = function () {
+                var ii, neighbours;
 
-        for (ii = 0; ii < tiles.length * 5; ii += 1) {
-            neighbours = emptyTile.neighbours();
+                for (ii = 0; ii < tiles.length * 5; ii += 1) {
+                    neighbours = emptyTile.neighbours();
 
-            emptyTile.swap(neighbours[Math.floor(Math.random() * neighbours.length)]);
-        }
-    };
-
-    tileFactory = function (size, border, img, ctx, imageSize, row, col, count) {
-        var tileSize = size + border,
-            origRow = row,
-            origCol = col,
-            theRow = row,
-            theCol = col,
-            isEmpty = (row === 0 && col === count - 1);
-
-        var draw = function () {
-            if (isEmpty) {
-                ctx.fillRect(theCol * (tileSize),
-                             theRow * (tileSize),
-                             size, size);
-            } else {
-                ctx.drawImage(img,
-                              origCol * imageSize,
-                              origRow * imageSize,
-                              imageSize, imageSize,
-                              theCol * (tileSize),
-                              theRow * (tileSize),
-                              size, size);
-            }
-        };
-
-        var contains = function (xx, yy) {
-            if (isEmpty) {
-                return false;
-            }
-            return theCol      * (tileSize) < xx &&
-                  (theCol + 1) * (tileSize) > xx &&
-                   theRow      * (tileSize) < yy &&
-                  (theRow + 1) * (tileSize) > yy;
-        };
-
-        var neighbour = function (tile) {
-            return Math.abs(theCol - tile.getCol()) + Math.abs(theRow - tile.getRow()) === 1;
-        };
-
-        var emptyNeighbour = function () {
-            return neighbour(emptyTile);
-        };
-
-        var neighbours = function () {
-            var result = [];
-            tiles.forEach(function (tile) {
-                if (neighbour(tile)) {
-                    result.push(tile);
+                    emptyTile.swap(neighbours[Math.floor(Math.random() * neighbours.length)]);
                 }
-            });
-            return result;
-        };
+            };
 
-        var solved = function () {
-            return theCol === origCol && theRow === origRow;
-        };
+            tileFactory = function (size, border, img, ctx, imageSize, row, col, count) {
+                var tileSize = size + border,
+                    origRow = row,
+                    origCol = col,
+                    theRow = row,
+                    theCol = col,
+                    isEmpty = (row === 0 && col === count - 1);
 
-        var swap = function (other) {
-            var tmpR, tmpC;
-            if (neighbour(other)) {
-                tmpR = theRow;
-                tmpC = theCol;
-                theRow = other.getRow();
-                theCol = other.getCol();
-                other.setPosition(tmpR, tmpC);
-            }
-        };
-
-        var setPosition = function (row, col) {
-            theRow = row;
-            theCol = col;
-        };
-
-        var show = function () {
-            isEmpty = false;
-            draw();
-        };
-
-        var empty = function () {
-            return isEmpty;
-        };
-
-        var getCol = function () {
-            return theCol;
-        };
-
-        var getRow = function () {
-            return theRow;
-        };
-
-        return Object.freeze({
-            draw: draw,
-            contains: contains,
-            emptyNeighbour: emptyNeighbour,
-            neighbours: neighbours,
-            solved: solved,
-            swap: swap,
-            empty: empty,
-            getCol: getCol,
-            getRow: getRow,
-            show: show,
-            setPosition: setPosition
-        });
-    };
-
-    puzzle = function (count, size, border, imageUrl) {
-        var canvas, tile, move, puzzleSolved, imageSize;
-
-        canvas = document.getElementById('puzzle');
-
-        if (canvas.getContext) {
-            var ctx = canvas.getContext('2d');
-            ctx.fillStyle = "rgb(255, 255, 255)";
-
-            var img = new Image();
-            img.src = imageUrl;
-
-            if (img.height > img.width) {
-                imageSize = img.width / count;
-            } else {
-                imageSize = img.height / count;
-            }
-
-            tiles = [];
-            img.onload = function () {
-                var ii, jj;
-
-                for (ii = 0; ii < count; ii += 1) {
-                    for (jj = 0; jj < count; jj += 1) {
-                        tile = tileFactory(size, border, img, ctx, imageSize, ii, jj, count);
-
-                        tiles.push(tile);
-                        if (tile.empty()) {
-                            emptyTile = tile;
-                        }
+                var draw = function () {
+                    if (isEmpty) {
+                        ctx.fillRect(theCol * (tileSize),
+                                     theRow * (tileSize),
+                                     size, size);
+                    } else {
+                        ctx.drawImage(img,
+                                      origCol * imageSize,
+                                      origRow * imageSize,
+                                      imageSize, imageSize,
+                                      theCol * (tileSize),
+                                      theRow * (tileSize),
+                                      size, size);
                     }
-                }
-                while (puzzleSolved()) {
-                    shuffle();
-                }
-                tiles.forEach(function (tile) {
-                    tile.draw();
+                };
+
+                var contains = function (xx, yy) {
+                    if (isEmpty) {
+                        return false;
+                    }
+                    return theCol      * (tileSize) < xx &&
+                          (theCol + 1) * (tileSize) > xx &&
+                           theRow      * (tileSize) < yy &&
+                          (theRow + 1) * (tileSize) > yy;
+                };
+
+                var neighbour = function (tile) {
+                    return Math.abs(theCol - tile.getCol()) + Math.abs(theRow - tile.getRow()) === 1;
+                };
+
+                var emptyNeighbour = function () {
+                    return neighbour(emptyTile);
+                };
+
+                var neighbours = function () {
+                    var result = [];
+                    tiles.forEach(function (tile) {
+                        if (neighbour(tile)) {
+                            result.push(tile);
+                        }
+                    });
+                    return result;
+                };
+
+                var solved = function () {
+                    return theCol === origCol && theRow === origRow;
+                };
+
+                var swap = function (other) {
+                    var tmpR, tmpC;
+                    if (neighbour(other)) {
+                        tmpR = theRow;
+                        tmpC = theCol;
+                        theRow = other.getRow();
+                        theCol = other.getCol();
+                        other.setPosition(tmpR, tmpC);
+                    }
+                };
+
+                var setPosition = function (row, col) {
+                    theRow = row;
+                    theCol = col;
+                };
+
+                var show = function () {
+                    isEmpty = false;
+                    draw();
+                };
+
+                var empty = function () {
+                    return isEmpty;
+                };
+
+                var getCol = function () {
+                    return theCol;
+                };
+
+                var getRow = function () {
+                    return theRow;
+                };
+
+                return Object.freeze({
+                    draw: draw,
+                    contains: contains,
+                    emptyNeighbour: emptyNeighbour,
+                    neighbours: neighbours,
+                    solved: solved,
+                    swap: swap,
+                    empty: empty,
+                    getCol: getCol,
+                    getRow: getRow,
+                    show: show,
+                    setPosition: setPosition
                 });
             };
-        }
-        move = function (tile, emptyTile) {
-            tile.swap(emptyTile);
-            emptyTile.draw();
-            tile.draw();
-        };
-        puzzleSolved = function () {
-            var ii;
 
-            for (ii = 0; ii < tiles.length; ii += 1) {
-                if (!tiles[ii].solved()) {
-                    return false;
-                }
-            }
-            return true;
-        };
-        canvas.onclick = function (ev) {
-            if (puzzleSolved()) {
-                return;
-            }
-            tiles.forEach(function (tile) {
-                var x, y;
+            puzzle = function (count, size, border, imageUrl) {
+                var canvas, tile, move, puzzleSolved, imageSize;
 
-                // chrome/safari vs firefox
-                x = ev.x || ev.clientX;
-                y = ev.y || ev.clientY;
+                canvas = document.getElementById('puzzle');
 
-                if (tile.contains(x, y) && tile.emptyNeighbour()) {
-                    move(tile, emptyTile);
-                    if (puzzleSolved()) {
-                        emptyTile.show();
+                if (canvas.getContext) {
+                    var ctx = canvas.getContext('2d');
+                    ctx.fillStyle = "rgb(255, 255, 255)";
+
+                    var img = new Image();
+                    img.src = imageUrl;
+
+                    if (img.height > img.width) {
+                        imageSize = img.width / count;
+                    } else {
+                        imageSize = img.height / count;
                     }
+
+                    tiles = [];
+                    img.onload = function () {
+                        var ii, jj;
+
+                        for (ii = 0; ii < count; ii += 1) {
+                            for (jj = 0; jj < count; jj += 1) {
+                                tile = tileFactory(size, border, img, ctx, imageSize, ii, jj, count);
+
+                                tiles.push(tile);
+                                if (tile.empty()) {
+                                    emptyTile = tile;
+                                }
+                            }
+                        }
+                        while (puzzleSolved()) {
+                            shuffle();
+                        }
+                        tiles.forEach(function (tile) {
+                            tile.draw();
+                        });
+                    };
                 }
-            });
-        };
-    };
-    //pictureUrl = "http://ia.media-imdb.com/images/M/MV5BNDM1NzkzMjQ4NF5BMl5BanBnXkFtZTcwMDE3Nzk3Mg@@._V1_SX640_SY720_.jpg";
-    pictureUrl = "http://www.tumblr18.com/t18/2013/10/Puppies-in-a-basket.jpeg";
+                move = function (tile, emptyTile) {
+                    tile.swap(emptyTile);
+                    emptyTile.draw();
+                    tile.draw();
+                };
+                puzzleSolved = function () {
+                    var ii;
 
-    window.onload = function () {
-        var inputUrl, rows, tileSize, border, firstFocus, reload;
-        rows = 3;
-        tileSize = 200;
-        border = 2;
-        firstFocus = true;
+                    for (ii = 0; ii < tiles.length; ii += 1) {
+                        if (!tiles[ii].solved()) {
+                            return false;
+                        }
+                    }
+                    return true;
+                };
+                canvas.onclick = function (ev) {
+                    if (puzzleSolved()) {
+                        return;
+                    }
+                    tiles.forEach(function (tile) {
+                        var x, y;
 
-        puzzle(rows, tileSize, border, pictureUrl);
-        inputUrl = document.getElementById('inputUrl');
-        inputUrl.onfocus = function () {
-            if (firstFocus) {
-                inputUrl.value = "";
-                firstFocus = false;
-            }
-        };
-        reload = function (ev) {
-            if (ev.type === "keyup" && ev.which !== 13) {
-                return;
-            }
-            var img = new Image();
-            img.src = inputUrl.value;
+                        // chrome/safari vs firefox
+                        x = ev.x || ev.clientX;
+                        y = ev.y || ev.clientY;
 
-            img.onload = function () {
-                if (img.height > 0) {
-                    puzzle(rows, tileSize, border, inputUrl.value);
-                }
+                        if (tile.contains(x, y) && tile.emptyNeighbour()) {
+                            move(tile, emptyTile);
+                            if (puzzleSolved()) {
+                                emptyTile.show();
+                            }
+                        }
+                    });
+                };
             };
-        };
-        inputUrl.onblur = reload;
-        inputUrl.onkeyup = reload;
-    };
-}());
+            //pictureUrl = "http://ia.media-imdb.com/images/M/MV5BNDM1NzkzMjQ4NF5BMl5BanBnXkFtZTcwMDE3Nzk3Mg@@._V1_SX640_SY720_.jpg";
+            pictureUrl = "http://www.tumblr18.com/t18/2013/10/Puppies-in-a-basket.jpeg";
+
+            window.onload = function () {
+                var inputUrl, rows, tileSize, border, firstFocus, reload;
+                rows = 3;
+                tileSize = 200;
+                border = 2;
+                firstFocus = true;
+
+                puzzle(rows, tileSize, border, pictureUrl);
+                inputUrl = document.getElementById('inputUrl');
+                inputUrl.onfocus = function () {
+                    if (firstFocus) {
+                        inputUrl.value = "";
+                        firstFocus = false;
+                    }
+                };
+                reload = function (ev) {
+                    if (ev.type === "keyup" && ev.which !== 13) {
+                        return;
+                    }
+                    var img = new Image();
+                    img.src = inputUrl.value;
+
+                    img.onload = function () {
+                        if (img.height > 0) {
+                            puzzle(rows, tileSize, border, inputUrl.value);
+                        }
+                    };
+                };
+                inputUrl.onblur = reload;
+                inputUrl.onkeyup = reload;
+            };
+        }());
     </script>
 </body>
 </html>
