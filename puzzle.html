@@ -27,199 +27,239 @@
         <input id="inputUrl" type="text" size="80" value="Please enter a URL to change the picture">
     </p>
     <script type="text/javascript">
-        (function () {
-            "use strict";
 
-            //  Tim Breitkreutz/2014
-            //
-            //  Available under creative commons share-alike licence by
-            //  Software Brewmasters Incorporated
+(function () {
+    "use strict";
 
-            var puzzle, shuffle, emptyTile, tiles, pictureUrl;
+    //  Tim Breitkreutz/2014
+    //
+    //  Available under creative commons share-alike licence by
+    //  Software Brewmasters Incorporated
 
-            shuffle = function () {
-                var ii, neighbours;
+    var puzzle, shuffle, emptyTile, tiles, pictureUrl;
 
-                for (ii = 0; ii < tiles.length * 5; ii += 1) {
-                    neighbours = emptyTile.neighbours();
+    shuffle = function () {
+        var ii, neighbours;
 
-                    emptyTile.swap(neighbours[Math.floor(Math.random() * neighbours.length)]);
+        // for (ii = 0; ii < tiles.length * 5; ii += 1) {
+            neighbours = emptyTile.neighbours();
+
+            emptyTile.swap(neighbours[Math.floor(Math.random() * neighbours.length)]);
+        // }
+    };
+
+    var tileFactory = function(tile, size, border) {
+        var tileSize = size + border;
+
+        var draw = function () {
+            if (this.empty) {
+                this.ctx.fillRect(this.col * (tileSize),
+                                  this.row * (tileSize),
+                                  size, size);
+            } else {
+                this.ctx.drawImage(this.img,
+                                   this.imageCol * this.imageSize,
+                                   this.imageRow * this.imageSize,
+                                   this.imageSize, this.imageSize,
+                                   this.col * (tileSize),
+                                   this.row * (tileSize),
+                                   size, size);
+            }
+        };
+
+        var contains = function (xx, yy) {
+            if (this.empty) {
+                return false;
+            }
+            return this.col      * (tileSize) < xx &&
+                  (this.col + 1) * (tileSize) > xx &&
+                   this.row      * (tileSize) < yy &&
+                  (this.row + 1) * (tileSize) > yy;
+        };
+
+        var neighbour = function (tile) {
+            return Math.abs(this.col - tile.col) + Math.abs(this.row - tile.row) === 1;
+        };
+
+        var emptyNeighbour = function () {
+            return this.neighbour(emptyTile);
+        };
+
+        var neighbours = function () {
+            var that, result = [];
+            that = this;
+            tiles.forEach(function (tile) {
+                if (that.neighbour(tile)) {
+                    result.push(tile);
                 }
+            });
+            return result;
+        };
+
+        var solved = function () {
+            return this.col === this.imageCol && this.row === this.imageRow;
+        };
+
+        var swap = function (that) {
+            var row, col;
+            if (!this.neighbour(that)) {
+                //console.log("illegal swap");
+                return;
+            }
+            row = this.row;
+            col = this.col;
+            this.row = that.row;
+            this.col = that.col;
+            that.row = row;
+            that.col = col;
+        };
+
+        if (tile) {
+            return Object.create(tile);
+        } else {
+            var newTile =  {
+                size: size,
+                border: border,
+                draw: draw,
+                contains: contains,
+                neighbour: neighbour,
+                emptyNeighbour: emptyNeighbour,
+                neighbours: neighbours,
+                solved: solved,
+                swap: swap
             };
-
-            puzzle = function (count, size, border, imageUrl) {
-                var canvas, tile, move, puzzleSolved;
-
-                canvas = document.getElementById('puzzle');
-                tile = {
-                    size: size,
-                    border: border,
-                    draw: function () {
-                        if (this.empty) {
-                            this.ctx.fillRect(this.col * (this.size + this.border),
-                                              this.row * (this.size + this.border),
-                                              this.size, this.size);
-                        } else {
-                            this.ctx.drawImage(this.img,
-                                               this.imageCol * this.imageSize,
-                                               this.imageRow * this.imageSize,
-                                               this.imageSize, this.imageSize,
-                                               this.col * (this.size + this.border),
-                                               this.row * (this.size + this.border),
-                                               this.size, this.size);
-                        }
-                    },
-                    contains: function (xx, yy) {
-                        if (this.empty) {
-                            return false;
-                        }
-                        return this.col      * (this.size + this.border) < xx &&
-                              (this.col + 1) * (this.size + this.border) > xx &&
-                               this.row      * (this.size + this.border) < yy &&
-                              (this.row + 1) * (this.size + this.border) > yy;
-                    },
-                    neighbour: function (tile) {
-                        return Math.abs(this.col - tile.col) + Math.abs(this.row - tile.row) === 1;
-                    },
-                    emptyNeighbour: function () {
-                        return this.neighbour(emptyTile);
-                    },
-                    neighbours: function () {
-                        var that, result = [];
-                        that = this;
-                        tiles.forEach(function (tile) {
-                            if (that.neighbour(tile)) {
-                                result.push(tile);
-                            }
-                        });
-                        return result;
-                    },
-                    solved: function () {
-                        return this.col === this.imageCol && this.row === this.imageRow;
-                    },
-                    swap: function (that) {
-                        var row, col;
-                        if (!this.neighbour(that)) {
-                            //console.log("illegal swap");
-                            return;
-                        }
-                        row = this.row;
-                        col = this.col;
-                        this.row = that.row;
-                        this.col = that.col;
-                        that.row = row;
-                        that.col = col;
-                    }
+            // State
+            (function() {
+                var theRow = 0, 
+                    theCol = 0;
+                newTile.position = function() {
+                    return {row: theRow, col: theCol};
                 };
-                if (canvas.getContext) {
-                    tile.ctx = canvas.getContext('2d');
-                    tile.ctx.fillStyle = "rgb(255, 255, 255)";
+                newTile.setPosition = function(row, col) {
+                    theRow = row;
+                    theCol = col;
+                };
+            }());
+            return newTile;
+        }
+    }
 
-                    tile.img = new Image();
-                    tile.img.src = imageUrl;
+    puzzle = function (count, size, border, imageUrl) {
+        var canvas, tile, move, puzzleSolved;
 
-                    tiles = [];
-                    tile.img.onload = function () {
-                        var ii, jj;
-                        if (tile.img.height > tile.img.width) {
-                            tile.imageSize = tile.img.width / count;
-                        } else {
-                            tile.imageSize = tile.img.height / count;
-                        }
-                        for (ii = 0; ii < count; ii += 1) {
-                            for (jj = 0; jj < count; jj += 1) {
-                                tile = Object.create(tile);
-                                tile.row = ii;
-                                tile.col = jj;
-                                tile.imageRow = ii;
-                                tile.imageCol = jj;
-                                tile.empty = (ii === 0 && jj === count - 1);
-                                tiles.push(tile);
-                                if (tile.empty) {
-                                    emptyTile = tile;
-                                }
-                            }
-                        }
-                        while (puzzleSolved()) {
-                            shuffle();
-                        }
-                        tiles.forEach(function (tile) {
-                            tile.draw();
-                        });
-                    };
+        canvas = document.getElementById('puzzle');
+
+        tile = tileFactory(null, size, border);
+
+        if (canvas.getContext) {
+            tile.ctx = canvas.getContext('2d');
+            tile.ctx.fillStyle = "rgb(255, 255, 255)";
+
+            tile.img = new Image();
+            tile.img.src = imageUrl;
+
+            tiles = [];
+            tile.img.onload = function () {
+                var ii, jj;
+                if (tile.img.height > tile.img.width) {
+                    tile.imageSize = tile.img.width / count;
+                } else {
+                    tile.imageSize = tile.img.height / count;
                 }
-                move = function (tile, emptyTile) {
-                    tile.swap(emptyTile);
-                    emptyTile.draw();
+                for (ii = 0; ii < count; ii += 1) {
+                    for (jj = 0; jj < count; jj += 1) {
+                        tile = tileFactory(tile);
+                        tile.row = ii;
+                        tile.col = jj;
+                        tile.imageRow = ii;
+                        tile.imageCol = jj;
+                        tile.empty = (ii === 0 && jj === count - 1);
+                        tiles.push(tile);
+                        if (tile.empty) {
+                            emptyTile = tile;
+                        }
+                    }
+                }
+                while (puzzleSolved()) {
+                    shuffle();
+                }
+                tiles.forEach(function (tile) {
                     tile.draw();
-                };
-                puzzleSolved = function () {
-                    var ii;
+                });
+            };
+        }
+        move = function (tile, emptyTile) {
+            tile.swap(emptyTile);
+            emptyTile.draw();
+            tile.draw();
+        };
+        puzzleSolved = function () {
+            var ii;
 
-                    for(ii = 0; ii < tiles.length; ii += 1) {
-                        if (tiles[ii].row != tiles[ii].imageRow ||
-                            tiles[ii].col != tiles[ii].imageCol) {
-                            return false;
-                        }
-                    }
-                    return true;
-                };
-                canvas.onclick = function (ev) {
+            for(ii = 0; ii < tiles.length; ii += 1) {
+                if (tiles[ii].row != tiles[ii].imageRow ||
+                    tiles[ii].col != tiles[ii].imageCol) {
+                    return false;
+                }
+            }
+            return true;
+        };
+        canvas.onclick = function (ev) {
+            if (puzzleSolved()) {
+                return;
+            }
+            tiles.forEach(function (tile) {
+                var x, y;
+
+                // chrome/safari vs firefox
+                x = ev.x || ev.clientX;
+                y = ev.y || ev.clientY;
+
+                if (tile.contains(x, y) && tile.emptyNeighbour()) {
+                    move(tile, emptyTile);
                     if (puzzleSolved()) {
-                        return;
+                        emptyTile.empty = false;
+                        emptyTile.draw();
                     }
-                    tiles.forEach(function (tile) {
-                        var x, y;
+                }
+            });
+        };
+    };
+    //pictureUrl = "http://ia.media-imdb.com/images/M/MV5BNDM1NzkzMjQ4NF5BMl5BanBnXkFtZTcwMDE3Nzk3Mg@@._V1_SX640_SY720_.jpg";
+    pictureUrl = "http://www.tumblr18.com/t18/2013/10/Puppies-in-a-basket.jpeg";
 
-                        // chrome/safari vs firefox
-                        x = ev.x || ev.clientX;
-                        y = ev.y || ev.clientY;
+    window.onload = function () {
+        var inputUrl, rows, tileSize, border, firstFocus, reload;
+        rows = 3;
+        tileSize = 200;
+        border = 2;
+        firstFocus = true;
 
-                        if (tile.contains(x, y) && tile.emptyNeighbour()) {
-                            move(tile, emptyTile);
-                            if (puzzleSolved()) {
-                                emptyTile.empty = false;
-                                emptyTile.draw();
-                            }
-                        }
-                    });
-                };
+        puzzle(rows, tileSize, border, pictureUrl);
+        inputUrl = document.getElementById('inputUrl');
+        inputUrl.onfocus = function () {
+            if (firstFocus) {
+                this.value = "";
+                firstFocus = false;
+            }
+        };
+        reload = function (ev) {
+            if (ev.type === "keyup" && ev.which !== 13) {
+                return;
+            }
+            var img = new Image();
+            img.src = this.value;
+
+            img.onload = function () {
+                if (img.height > 0) {
+                    puzzle(rows, tileSize, border, inputUrl.value);
+                }
             };
-            //pictureUrl = "http://ia.media-imdb.com/images/M/MV5BNDM1NzkzMjQ4NF5BMl5BanBnXkFtZTcwMDE3Nzk3Mg@@._V1_SX640_SY720_.jpg";
-            pictureUrl = "http://www.tumblr18.com/t18/2013/10/Puppies-in-a-basket.jpeg";
-
-            window.onload = function () {
-                var inputUrl, rows, tileSize, border, firstFocus, reload;
-                rows = 3;
-                tileSize = 200;
-                border = 2;
-                firstFocus = true;
-
-                puzzle(rows, tileSize, border, pictureUrl);
-                inputUrl = document.getElementById('inputUrl');
-                inputUrl.onfocus = function () {
-                    if (firstFocus) {
-                        this.value = "";
-                        firstFocus = false;
-                    }
-                };
-                reload = function (ev) {
-                    if (ev.type === "keyup" && ev.which !== 13) {
-                        return;
-                    }
-                    var img = new Image();
-                    img.src = this.value;
-
-                    img.onload = function () {
-                        if (img.height > 0) {
-                            puzzle(rows, tileSize, border, inputUrl.value);
-                        }
-                    };
-                };
-                inputUrl.onblur = reload;
-                inputUrl.onkeyup = reload;
-            };
-        }());
+        };
+        inputUrl.onblur = reload;
+        inputUrl.onkeyup = reload;
+    };
+}());
     </script>
 </body>
 </html>
