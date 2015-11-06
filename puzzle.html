@@ -91,13 +91,9 @@
                 };
 
                 var neighbours = function () {
-                    var result = [];
-                    tiles.forEach(function (tile) {
-                        if (neighbour(tile)) {
-                            result.push(tile);
-                        }
+                    return tiles.filter(function(tile) {
+                        return neighbour(tile);
                     });
-                    return result;
                 };
 
                 var solved = function () {
@@ -138,17 +134,17 @@
                 };
 
                 return Object.freeze({
-                    draw: draw,
                     contains: contains,
-                    emptyNeighbour: emptyNeighbour,
-                    neighbours: neighbours,
-                    solved: solved,
-                    swap: swap,
+                    draw: draw,
                     empty: empty,
+                    emptyNeighbour: emptyNeighbour,
                     getCol: getCol,
                     getRow: getRow,
+                    neighbours: neighbours,
+                    setPosition: setPosition,
                     show: show,
-                    setPosition: setPosition
+                    solved: solved,
+                    swap: swap
                 });
             };
 
@@ -163,7 +159,6 @@
 
                     var img = new Image();
                     img.src = imageUrl;
-
 
                     tiles = [];
                     img.onload = function () {
