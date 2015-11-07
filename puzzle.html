@@ -18,7 +18,7 @@
         To play the puzzle, click on a square next to the blank square.  When you solve the puzzle
         the top right corner will appear.
     </p>
-    <canvas width="604" height="604" id="puzzle">
+    <canvas width="806" height="806" id="puzzle">
         <p>
             Please try a newer browser! Thanks.
         </p>
@@ -206,8 +206,8 @@
                         var x, y;
 
                         // chrome/safari vs firefox
-                        x = (ev.x || ev.clientX) - document.getElementById('puzzle').offsetLeft;
-                        y = (ev.y || ev.clientY) - document.getElementById('puzzle').offsetTop;
+                        x = (ev.x || ev.clientX) - canvas.offsetLeft;
+                        y = (ev.y || ev.clientY) - canvas.offsetTop;
 
                         if (tile.contains(x, y) && tile.emptyNeighbour()) {
                             move(tile, emptyTile);
@@ -224,7 +224,7 @@
             window.onload = function () {
                 var inputUrl, rows, tileSize, border, firstFocus, reload;
                 rows = 3;
-                tileSize = 200;
+                tileSize = document.getElementById('puzzle').width / rows;
                 border = 2;
                 firstFocus = true;
 
