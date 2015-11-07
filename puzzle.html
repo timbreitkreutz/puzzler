@@ -91,7 +91,7 @@
                 };
 
                 var neighbours = function () {
-                    return tiles.filter(function(tile) {
+                    return tiles.filter(function (tile) {
                         return neighbour(tile);
                     });
                 };
@@ -194,14 +194,9 @@
                     tile.draw();
                 };
                 puzzleSolved = function () {
-                    var ii;
-
-                    for (ii = 0; ii < tiles.length; ii += 1) {
-                        if (!tiles[ii].solved()) {
-                            return false;
-                        }
-                    }
-                    return true;
+                    return !tiles.find(function (tile) {
+                        return !tile.solved();
+                    });
                 };
                 canvas.onclick = function (ev) {
                     if (puzzleSolved()) {
