@@ -14,17 +14,33 @@
 <body>
     <p>
         This page demonstrates using the Canvas from raw javascript without using jQuery or other 
-        libraries, and it makes use of Crockford's classless OO. (Note the lack of any references to <em>this</em>)
+        libraries, and it makes use of Crockford's classless OO. (Note the lack of any references to <em>this</em>)o
+    </p>
+    <p>
         To play the puzzle, click on a square next to the blank square.  When you solve the puzzle
         the top right corner will appear.
     </p>
-    <canvas width="806" height="806" id="puzzle">
+    <canvas width="600" height="600" id="puzzle">
         <p>
             Please try a newer browser! Thanks.
         </p>
     </canvas>
     <p>
-        <input id="inputUrl" type="text" size="80" value="Please enter a URL to change the picture">
+        To change the photo, enter a new photo URL here:
+        <br>
+        <input id="inputUrl" type="text" size="120" value=" http://www.goodfreephotos.com/cache/new-album/ontario/ouimet-canyon/ontario-ouimet-canyon-provincial-park-view-of-the-canyon-interior_w875_h495.jpg">
+        </input>
+    </p>
+    <p>
+        Number of tiles across:
+        <br>
+        <input type="radio" name="size" value="2"> 2<br>
+        <input type="radio" name="size" value="3" checked> 3<br>
+        <input type="radio" name="size" value="4"> 4<br>
+        <input type="radio" name="size" value="5"> 5
+    </p>
+    <p>
+        <input type="submit" name="refresh" value="Refresh puzzle" id="refresh"></input>
     </p>
     <script type="text/javascript">
 
@@ -36,7 +52,7 @@
             //  Available under creative commons share-alike licence by
             //  Software Brewmasters Incorporated
 
-            var puzzle, shuffle, emptyTile, tiles, pictureUrl, tileFactory;
+            var puzzle, shuffle, emptyTile, tiles, tileFactory, selectedSize;
 
             shuffle = function () {
                 var ii, neighbours;
@@ -148,46 +164,9 @@
                 });
             };
 
-            puzzle = function (count, size, border, imageUrl) {
-                var canvas, tile, move, puzzleSolved, imageSize;
+            puzzle = function (count, size, border, img) {
+                var canvas, tile, move, puzzleSolved, imageSize, ctx, ii, jj;
 
-                canvas = document.getElementById('puzzle');
-
-                if (canvas.getContext) {
-                    var ctx = canvas.getContext('2d');
-                    ctx.fillStyle = "rgb(255, 255, 255)";
-
-                    var img = new Image();
-                    img.src = imageUrl;
-
-                    tiles = [];
-                    img.onload = function () {
-                        var ii, jj;
-
-                        if (img.height > img.width) {
-                            imageSize = img.width / count;
-                        } else {
-                            imageSize = img.height / count;
-                        }
-
-                        for (ii = 0; ii < count; ii += 1) {
-                            for (jj = 0; jj < count; jj += 1) {
-                                tile = tileFactory(size, border, img, ctx, imageSize, ii, jj, count);
-
-                                tiles.push(tile);
-                                if (tile.empty()) {
-                                    emptyTile = tile;
-                                }
-                            }
-                        }
-                        while (puzzleSolved()) {
-                            shuffle();
-                        }
-                        tiles.forEach(function (tile) {
-                            tile.draw();
-                        });
-                    };
-                }
                 move = function (tile, emptyTile) {
                     tile.swap(emptyTile);
                     emptyTile.draw();
@@ -198,6 +177,8 @@
                         return !tile.solved();
                     });
                 };
+
+                canvas = document.getElementById('puzzle');
                 canvas.onclick = function (ev) {
                     if (puzzleSolved()) {
                         return;
@@ -217,40 +198,75 @@
                         }
                     });
                 };
+
+                if (canvas.getContext) {
+                    ctx = canvas.getContext('2d');
+                    ctx.fillStyle = "rgb(255, 255, 255)";
+
+                    tiles = [];
+
+                    if (img.height > img.width) {
+                        imageSize = img.width / count;
+                    } else {
+                        imageSize = img.height / count;
+                    }
+
+                    for (ii = 0; ii < count; ii += 1) {
+                        for (jj = 0; jj < count; jj += 1) {
+                            tile = tileFactory(size, border, img, ctx, imageSize, ii, jj, count);
+
+                            tiles.push(tile);
+                            if (tile.empty()) {
+                                emptyTile = tile;
+                            }
+                        }
+                    }
+                    while (puzzleSolved()) {
+                        shuffle();
+                    }
+                    ctx.fillRect(0, 0, canvas.height, canvas.width);
+                    tiles.forEach(function (tile) {
+                        tile.draw();
+                    });
+                }
             };
-            //pictureUrl = "http://ia.media-imdb.com/images/M/MV5BNDM1NzkzMjQ4NF5BMl5BanBnXkFtZTcwMDE3Nzk3Mg@@._V1_SX640_SY720_.jpg";
-            pictureUrl = "http://www.tumblr18.com/t18/2013/10/Puppies-in-a-basket.jpeg";
+
+            selectedSize = function () {
+                var ii, buttons;
+
+                buttons = document.getElementsByName('size');
+                for (ii = 2; ii < 6; ii += 1) {
+                    if (buttons[ii - 2].checked) {
+                        return ii;
+                    }
+                }
+                return 3;
+            };
 
             window.onload = function () {
-                var inputUrl, rows, tileSize, border, firstFocus, reload;
-                rows = 3;
-                tileSize = document.getElementById('puzzle').width / rows;
-                border = 2;
-                firstFocus = true;
+                var reload;
 
-                puzzle(rows, tileSize, border, pictureUrl);
-                inputUrl = document.getElementById('inputUrl');
-                inputUrl.onfocus = function () {
-                    if (firstFocus) {
-                        inputUrl.value = "";
-                        firstFocus = false;
-                    }
-                };
                 reload = function (ev) {
-                    if (ev.type === "keyup" && ev.which !== 13) {
+                    var rows, tileSize, border, img;
+
+                    if (ev && ev.type === "keyup" && ev.which !== 13) {
                         return;
                     }
-                    var img = new Image();
-                    img.src = inputUrl.value;
+
+                    rows = selectedSize();
+                    tileSize = document.getElementById('puzzle').width / rows;
+                    border = 2;
+                    img = new Image();
+                    img.src = document.getElementById('inputUrl').value;
 
                     img.onload = function () {
                         if (img.height > 0) {
-                            puzzle(rows, tileSize, border, inputUrl.value);
+                            puzzle(rows, tileSize, border, img);
                         }
                     };
                 };
-                inputUrl.onblur = reload;
-                inputUrl.onkeyup = reload;
+                document.getElementById('refresh').onclick = reload;
+                reload();
             };
         }());
     </script>
